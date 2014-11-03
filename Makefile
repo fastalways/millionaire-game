@@ -1,2 +1,2 @@
 game:main.c
-	gcc -Wall -ansi -pedantic main.c -o game
+	g++ -Wall -ansi -pedantic main.c -o game
