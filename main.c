@@ -132,7 +132,8 @@ public:
 		{
 			num1 = rand() % 11;
 			num2 = rand() % 11;
-			cout << num1 << " " << num2 << endl;
+			if(i!=29)cout << num1 << " " << num2 << endl;
+			else cPrint.cPrint(intToStr(num1)+" "+intToStr(num2),"green");
 			usleep((i+1)*10000);
 		}
 		/* Show result & return Hilow Winner */
