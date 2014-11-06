@@ -23,10 +23,86 @@ void clean_stdin(void)
     } while (c != '\n' && c != EOF);
 }
 
+
+
+
+
+
 class player
 {
 public:
 	string name;
+	int coins;
+	class pitem
+	{
+	public:
+		uint id;
+		uint amount;
+		pitem(uint uintid, uint uintamount=1)
+		{
+			id=uintid;amount=uintamount;
+		}
+	};
+	class itemsClass
+	{
+	public:
+		vector<pitem> item;
+		int add(uint uintid, uint uintamount=1)
+		{
+			/*check already*/
+			bool already=false;
+			for(uint i=0;i<item.size();i++)
+			{
+				if(uintid==item[i].id)
+				{
+					item[i].amount+=uintamount;
+					already=true;
+					break;
+				}
+			}
+			/*new slot*/
+			if(!already)
+			{
+				item.push_back(pitem(uintid,uintamount));
+			}
+			return 0;
+		}
+		int del(uint uintid, uint uintamount=1)
+		{
+			/*check already*/
+			bool already=false;
+			for(uint i=0;i<item.size();i++)
+			{
+				if(uintid==item[i].id)
+				{
+					if(uintamount<=item[i].amount)
+					{
+						item[i].amount-=uintamount;
+						already=true;
+						if(item[i].amount<=0)
+						{
+							item.erase(item.begin()+i);
+						}
+					}
+					else
+					{ return -1; }
+
+					break;
+				}
+			}
+			if(!already)
+			{
+				return -1;
+			}
+			return 0;
+		}
+	};
+	itemsClass box;
+	
+	player()
+	{
+		coins=20000000;
+	}
 
 };
 
@@ -103,15 +179,212 @@ class coreGame
 public:
 		
 	int randTurn;
+	int winner;
 	int num1,num2;
+	vector <uint> player1Choose;
+	vector <uint> player2Choose;
 	char highlowValue;
+	int prob;
+
+	class item
+	{
+	public:
+		string name;
+		string type;
+		int value;
+		int minProb;
+		item(string strname, string strtype, int intvalue, int intminProb=0)
+		{
+			name = strname;
+			type = strtype;
+			value = intvalue;
+			minProb = intminProb;
+		}
+	};
+
+	class itemPrototype
+	{
+	public:
+	/*------------------------*/
+		vector<string> types;
+		class prototype
+		{
+		public:
+			string name;
+			int value;
+			prototype(string strname,int intvalue)
+			{
+				name = strname;
+				value = intvalue;
+			}
+		};
+		vector<prototype> cars;
+		vector<prototype> houses;
+		vector<prototype> criticals;
+
+
+		itemPrototype()
+		{
+			
+			types.push_back("coin");
+			types.push_back("car");
+			types.push_back("house");
+			types.push_back("critical");
+			/*------------------------------*/
+			cars.push_back(prototype("Ferrari",25000000));
+			cars.push_back(prototype("Lamborghini",15000000));
+			cars.push_back(prototype("Chevrolet Camaro",18000000));
+			cars.push_back(prototype("Audi RS 7",10000000));
+			cars.push_back(prototype("Ford Mustang",30000000));
+			cars.push_back(prototype("Porsche Cayman",12000000));
+			/*------------------------------*/
+			houses.push_back(prototype("Hawaii,USA",35000000));
+			houses.push_back(prototype("Toyko,Japan",10000000));
+			houses.push_back(prototype("Bangkok,Thailand",2000000));
+			houses.push_back(prototype("New York,USA",20000000));
+			houses.push_back(prototype("Rome,Italy",80000000));
+			houses.push_back(prototype("Sydney,Australia",80000000));
+			/*------------------------------*/
+			criticals.push_back(prototype("Lost All House",50));/* Value are minimum num required prob to gen it */
+			criticals.push_back(prototype("Lost All car",40));
+			criticals.push_back(prototype("Lost All gold",40));
+			criticals.push_back(prototype("Steal Car",30));
+			criticals.push_back(prototype("Steal House",30));
+			criticals.push_back(prototype("Bankrupt",70));
+
+		}
+	};
+
+
+
+	vector<item> itemMap;
+	itemPrototype prototypeItem;
+	vector<int> randomItems;
 
 	coreGame()
 	{
 		randTurn = 0;
+		prob = 0;
+		generate_itemMap();
+			/*players[1].box.add(40,2);
+			players[1].box.add(41,2);
+			players[1].box.add(42,2);
+			players[1].box.add(43,2);
+			players[1].box.add(44,2);
+			players[1].box.add(45,2);
+			players[1].box.add(46,2);
+			players[1].box.add(47,2);
+			players[1].box.add(48,2);
+			players[1].box.add(49,2);
+			players[1].box.add(50,2);
+			players[1].box.add(51,2);
+						players[0].box.add(40,2);
+			players[0].box.add(41,2);
+			players[0].box.add(42,2);
+			players[0].box.add(43,2);
+			players[0].box.add(44,2);
+			//players[0].box.add(45,2);
+			players[0].box.add(46,2);
+			players[0].box.add(47,2);
+			players[0].box.add(48,2);
+			players[0].box.add(49,2);
+			//players[0].box.add(50,2);
+			//players[0].box.add(51,2);*/
+
+
+		player1Choose.push_back(0);/*[0] for me ,[1] for challenger*/
+		player1Choose.push_back(0);
+		player2Choose.push_back(0);
+		player2Choose.push_back(0);
+		while(true)
+		{
+
+			showItem_player();
+			randomItems.empty();
+			randomItems=random_item();
+			showRandom_item();
+			chooseItem();
+
+			winner = highlow();
+			
+			
+		}
+		
 	}
 
-	int highlow(vector<player> players)
+	void getItem(uint player,uint item)
+	{
+		string name = itemMap[item].name;
+		string type = itemMap[item].type;
+		int value = itemMap[item].value;
+
+		/*types.push_back("coin");
+		types.push_back("car");
+		types.push_back("house");
+		types.push_back("critical");*/
+		if(type == "coin")
+		{
+			;
+		}
+		else if(type == "car")
+		{
+
+		}
+		else if(type == "house")
+		{
+			
+		}
+		else
+		{
+
+		}
+
+	}
+
+	void chooseItem(void)
+	{
+		cPrint.cPrint("\nPlayer 1 :" + players[0].name,"red") ;
+		while(true)
+		{
+			cout << "\n" << " select item for u (1-8)>";
+			cin >> player1Choose[0];
+			player1Choose[0]--;
+			if(player1Choose[0]>=0&&player1Choose[0]<=7)
+				{break;}
+		}
+		while(true)
+		{
+			cout << "\n" << " select item for challenger (1-8)>";
+			cin >> player1Choose[1];
+			player1Choose[1]--;
+			if(player1Choose[1]>=0&&player1Choose[1]<=7)
+				{break;}
+		}
+
+		cPrint.cPrint("\nPlayer 2 :" + players[1].name,"red") ;
+		while(true)
+		{
+			cout << "\n" << " select item for u (1-8)>";
+			cin >> player2Choose[0];
+			player2Choose[0]--;
+			if(player2Choose[0]>=0&&player2Choose[0]<=7)
+				{break;}
+		}
+		while(true)
+		{
+			cout << "\n" << " select item for challenger (1-8)>";
+			cin >> player2Choose[1];
+			player2Choose[1]--;
+			if(player2Choose[1]>=0&&player2Choose[1]<=7)
+				{break;}
+		}
+		//cout << endl << player1Choose[0] << "," << player1Choose[1];
+		//cout << endl << player2Choose[0] << "," << player2Choose[1];
+
+
+	}
+
+	int highlow(void)
 	{
 		srand(time(0));
 		int playerWin;
@@ -171,6 +444,163 @@ public:
 
 		
 	}
+
+	vector<int> random_item(void)
+	{
+		int a,b,c;
+		vector<int> ritem;
+		/*Generate lost coin 2*/
+		srand(time(0));
+		a = (rand() % 20);
+		b = (rand() % 20);
+		ritem.push_back(a);
+		ritem.push_back(b);
+		/*Generate coin 3*/
+		a = (rand() % 20)+20;
+		b = (rand() % 20)+20;
+		c = (rand() % 20)+20;
+		ritem.push_back(a);
+		ritem.push_back(b);
+		ritem.push_back(c);
+		/*Generate car 1*/
+		srand(time(0));
+		a = (rand() % 6)+40;
+		ritem.push_back(a);
+		/*Generate house 1*/
+		srand(time(0));
+		a = (rand() % 6)+46;
+		ritem.push_back(a);
+		/*Generate critical 1*/
+		srand(time(0));
+		if(prob>=30)
+		{
+			while(true)
+			{
+				a = (rand() % 6)+52;
+				if(prob>=itemMap[a].minProb)
+				{
+					ritem.push_back(a);
+					break;
+				}
+			}
+		}
+		else
+		{
+				a = (rand() % 20)+20;
+				ritem.push_back(a);
+		}
+
+		prob+=10;
+		/* Swap item 20 rounds*/
+		for(int i=0;i<20;i++)
+		{
+			srand(time(0));
+			int temp;
+			temp=ritem[0];
+			a = (rand() % 8);
+			ritem[0]=ritem[a];
+			ritem[a]=temp;
+		}
+		return ritem;
+
+	}
+
+	void showRandom_item(void)
+	{
+		uint a,b,c,d;
+		a = (rand() % 8);
+		b = (rand() % 8);
+		c = (rand() % 8);
+		d = (rand() % 8);
+		cout<<"\n";
+		for(uint i=0;i<randomItems.size();i++)
+		{
+			if(i==a||i==b||i==c||i==d)
+			{
+				cPrint.cPrint("\t("+intToStr(i+1)+") ???Secret item???","red");
+			}
+			else
+			{
+				cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
+			}
+			if(i==3)cout<<endl;
+		}
+
+	}
+	void showItem_player(void)
+	{
+		cout << "\n\t\t_____________________________________";
+		cout << "\n\t" << players[0].name<< "\t\t\t\t\t" << players[1].name;
+		cout << "\n\t" << players[0].coins << " coins" << "\t\t\t\t" << players[0].coins << " coins";
+		uint maxLine;
+		if(players[0].box.item.size()>players[1].box.item.size()){maxLine=players[0].box.item.size();}
+		else{maxLine=players[1].box.item.size();}
+		for(uint i=0;i<maxLine;i++)
+		{
+			if(i<players[0].box.item.size())
+			{
+				cout << "\n\t" << itemMap[players[0].box.item[i].id].name << " x " << intToStr(players[0].box.item[i].amount);
+			}
+			else
+			{
+				cout << "\n\t\t\t";
+			}
+			if(i<players[1].box.item.size())
+			{
+				cout << "\t\t\t" << itemMap[players[1].box.item[i].id].name << " x " << intToStr(players[1].box.item[i].amount);
+			}
+
+		}
+		cout << "\n\t\t_____________________________________";
+	}
+
+	void generate_itemMap(void)
+	{
+		/*
+		=====================================
+		0-19 = lost coins
+		20-39 = get coins
+		40-45 = get car
+		46-51 = get house
+		52-57 = critical
+		=====================================
+		*/
+		/*---------------------------------*/
+		/*Generate coin & lost coin		   */
+		for(int i =1;i<=20;i++)
+		{
+			itemMap.push_back(item("Lost Coin "+intToStr(i)+"M", prototypeItem.types[0], i*1000000*(-1)));
+		}
+		for(int i =1;i<=20;i++)
+		{
+			itemMap.push_back(item("Get  Coin "+intToStr(i)+"M", prototypeItem.types[0], i*1000000));
+		}
+		/*---------------------------------*/
+		/*Generate car 				  	   */
+		for(int i =0;i<=5;i++)
+		{
+			itemMap.push_back(item("(Car)"+prototypeItem.cars[i].name, prototypeItem.types[1], prototypeItem.cars[i].value));
+		}
+		/*---------------------------------*/
+		/*Generate house 				   */
+		for(int i =0;i<=5;i++)
+		{
+			itemMap.push_back(item("(House)"+prototypeItem.houses[i].name, prototypeItem.types[2], prototypeItem.houses[i].value));
+		}
+		/*---------------------------------*/
+		/*Generate critical 			   */
+		for(int i =0;i<=5;i++)
+		{
+			itemMap.push_back(item(prototypeItem.criticals[i].name, prototypeItem.types[3], 0, prototypeItem.criticals[i].value));
+		}
+		/*---------------------------------*/
+
+		for(uint i=0;i<itemMap.size();i++)
+		{
+				cout<<i<<" "<<itemMap[i].name<<" "<<itemMap[i].type<<" "<<itemMap[i].value<<" "<<itemMap[i].minProb<<endl;
+		}
+	}
+
 	
 };
 
@@ -198,27 +628,6 @@ int main(int argc, char* argv[])
 	players.push_back(addPlayer);	/* Add player 2 */
 	welcome();
 	coreGame game;
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
-	game.highlow(players);
-	getchar();
+
 	return 0;
 }
