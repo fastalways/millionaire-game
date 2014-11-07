@@ -288,8 +288,10 @@ public:
 			players[0].box.add(47,2);
 			players[0].box.add(48,2);
 			players[0].box.add(49,2);
-			//players[0].box.add(50,2);
-			//players[0].box.add(51,2);*/
+			players[0].box.add(50,2);*/
+			players[0].box.add(51,10);
+			players[0].box.del(51,1);
+			players[0].box.del(51,9);
 
 
 		player1Choose.push_back(0);/*[0] for me ,[1] for challenger*/
@@ -302,10 +304,20 @@ public:
 			showItem_player();
 			randomItems.empty();
 			randomItems=random_item();
-			showRandom_item();
+			showRandom_item(true);
 			chooseItem();
 
 			winner = highlow();
+			if(winner==0)
+			{
+				getItem(0,player1Choose[0]);// player 1 won get my item
+				getItem(1,player1Choose[1]);// player 2 lose get item's Player 1 selected
+			}
+			else
+			{
+				getItem(1,player2Choose[0]);// player 2 won get my item
+				getItem(0,player2Choose[1]);// player 1 lose get item's Player 2 selected
+			}
 			
 			
 		}
@@ -324,7 +336,9 @@ public:
 		types.push_back("critical");*/
 		if(type == "coin")
 		{
-			;
+			players[player].coins+=value;
+			if(value<=0)cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost coins" << intToStr(value*(-1));
+			else cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Got coins" << intToStr(value);
 		}
 		else if(type == "car")
 		{
@@ -378,6 +392,13 @@ public:
 			if(player2Choose[1]>=0&&player2Choose[1]<=7)
 				{break;}
 		}
+
+		/*Convert to mapitem [1-8] to map[0-n]*/
+		player1Choose[0]=randomItems[player1Choose[0]];
+		player1Choose[1]=randomItems[player1Choose[1]];
+		player2Choose[0]=randomItems[player2Choose[0]];
+		player2Choose[1]=randomItems[player2Choose[1]];
+
 		//cout << endl << player1Choose[0] << "," << player1Choose[1];
 		//cout << endl << player2Choose[0] << "," << player2Choose[1];
 
@@ -505,7 +526,7 @@ public:
 
 	}
 
-	void showRandom_item(void)
+	void showRandom_item(bool noSecret=false)
 	{
 		uint a,b,c,d;
 		a = (rand() % 8);
@@ -517,7 +538,8 @@ public:
 		{
 			if(i==a||i==b||i==c||i==d)
 			{
-				cPrint.cPrint("\t("+intToStr(i+1)+") ???Secret item???","red");
+				if(!noSecret)cPrint.cPrint("\t("+intToStr(i+1)+") ???Secret item???","red");
+				else cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
 			}
 			else
 			{
@@ -531,7 +553,7 @@ public:
 	{
 		cout << "\n\t\t_____________________________________";
 		cout << "\n\t" << players[0].name<< "\t\t\t\t\t" << players[1].name;
-		cout << "\n\t" << players[0].coins << " coins" << "\t\t\t\t" << players[0].coins << " coins";
+		cout << "\n\t" << players[0].coins << " coins" << "\t\t\t\t" << players[1].coins << " coins";
 		uint maxLine;
 		if(players[0].box.item.size()>players[1].box.item.size()){maxLine=players[0].box.item.size();}
 		else{maxLine=players[1].box.item.size();}
