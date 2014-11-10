@@ -243,14 +243,24 @@ public:
 			houses.push_back(prototype("Bangkok,Thailand",2000000));
 			houses.push_back(prototype("New York,USA",20000000));
 			houses.push_back(prototype("Rome,Italy",80000000));
-			houses.push_back(prototype("Sydney,Australia",80000000));
+			houses.push_back(prototype("Sydney,Australia",200000000));
 			/*------------------------------*/
-			criticals.push_back(prototype("Lost All House",50));/* Value are minimum num required prob to gen it */
-			criticals.push_back(prototype("Lost All car",40));
-			criticals.push_back(prototype("Lost All gold",40));
-			criticals.push_back(prototype("Steal Car",30));
-			criticals.push_back(prototype("Steal House",30));
-			criticals.push_back(prototype("Bankrupt",70));
+			//criticals.push_back(prototype("Lost All House",50));	/* Value are minimum num required prob to gen it */
+			//criticals.push_back(prototype("Lost All car",30));
+			//criticals.push_back(prototype("Lost All gold",40));
+			//criticals.push_back(prototype("Lost All house & car",80));
+			//criticals.push_back(prototype("Steal Car",50));
+			//criticals.push_back(prototype("Steal House",70));
+			//criticals.push_back(prototype("Bankrupt",90));
+
+
+			criticals.push_back(prototype("Lost All House",100));	/* Value are minimum num required prob to gen it */
+			criticals.push_back(prototype("Lost All car",100));
+			criticals.push_back(prototype("Lost All gold",100));
+			criticals.push_back(prototype("Lost All house & car",100));
+			criticals.push_back(prototype("Steal Car",100));
+			criticals.push_back(prototype("Steal House",100));
+			criticals.push_back(prototype("Bankrupt",30));
 
 		}
 	};
@@ -266,34 +276,6 @@ public:
 		randTurn = 0;
 		prob = 0;
 		generate_itemMap();
-			/*players[1].box.add(40,2);
-			players[1].box.add(41,2);
-			players[1].box.add(42,2);
-			players[1].box.add(43,2);
-			players[1].box.add(44,2);
-			players[1].box.add(45,2);
-			players[1].box.add(46,2);
-			players[1].box.add(47,2);
-			players[1].box.add(48,2);
-			players[1].box.add(49,2);
-			players[1].box.add(50,2);
-			players[1].box.add(51,2);
-						players[0].box.add(40,2);
-			players[0].box.add(41,2);
-			players[0].box.add(42,2);
-			players[0].box.add(43,2);
-			players[0].box.add(44,2);
-			//players[0].box.add(45,2);
-			players[0].box.add(46,2);
-			players[0].box.add(47,2);
-			players[0].box.add(48,2);
-			players[0].box.add(49,2);
-			players[0].box.add(50,2);*/
-			players[0].box.add(51,10);
-			players[0].box.del(51,1);
-			players[0].box.del(51,9);
-
-
 		player1Choose.push_back(0);/*[0] for me ,[1] for challenger*/
 		player1Choose.push_back(0);
 		player2Choose.push_back(0);
@@ -330,26 +312,145 @@ public:
 		string type = itemMap[item].type;
 		int value = itemMap[item].value;
 
-		/*types.push_back("coin");
-		types.push_back("car");
-		types.push_back("house");
-		types.push_back("critical");*/
-		if(type == "coin")
+		if(type == "coin")/* tested by gorn */
 		{
 			players[player].coins+=value;
-			if(value<=0)cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost coins" << intToStr(value*(-1));
-			else cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Got coins" << intToStr(value);
+			if(value<=0)cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost " << intToStr(value*(-1)) << "("<< intToStr(value / 1000000) <<"M)"<<" coins";
+			else cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Got " << intToStr(value) << "("<< intToStr(value / 1000000) <<"M)" <<" coins";
 		}
-		else if(type == "car")
+		else if(type == "car" || type == "house")/* tested by gorn */
 		{
-
-		}
-		else if(type == "house")
-		{
-			
+			players[player].box.add(item,1);
+			cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " got " << name;
 		}
 		else
 		{
+			if(name=="Lost All House")/* tested by gorn */
+			{
+				for(int i=0;i<(int)players[player].box.item.size()&&i>=0;i++)
+				{
+					if(itemMap[players[player].box.item[i].id].type=="house")
+					{
+						players[player].box.item.erase(players[player].box.item.begin()+i);
+						i--;
+					}
+				}
+				cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost All House!";
+			}
+			else if(name=="Lost All car")/* tested by gorn */
+			{
+				for(int i=0;i<(int)players[player].box.item.size()&&i>=0;i++)
+				{
+					if(itemMap[players[player].box.item[i].id].type=="car")
+					{
+						players[player].box.item.erase(players[player].box.item.begin()+i);
+						i--;
+					}
+				}
+				cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost All Car!";
+			}
+			else if(name=="Lost All gold")/* tested by gorn */
+			{
+				players[player].coins=0;
+				cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost All Coins!";
+			}
+			else if(name=="Steal Car")/* tested by gorn */
+			{
+				vector<int> car; uint challenger,choose;
+				if(player==0)challenger=1; else challenger=0;
+				cout << "\n\t" << "Player " << intToStr(player+1)<< ": " << players[player].name;
+				cout << " got right to Steal one car of challenger -> " << players[challenger].name;
+				
+				
+				
+
+				for(uint i=0;i<players[challenger].box.item.size();i++)
+				{
+					if(itemMap[players[challenger].box.item[i].id].type=="car")
+					{
+						
+						car.push_back(players[challenger].box.item[i].id);
+						cout << "\n\t(" << intToStr(car.size()) << ") " << itemMap[players[challenger].box.item[i].id].name << " x " << intToStr(players[challenger].box.item[i].amount);
+						
+					}
+					
+				}
+				if(car.size()<=0)
+				{
+					cout << "\nsorry, but challenger didn't have any car.";
+				}
+				else
+				{
+					while(true)
+					{
+						cPrint.cPrint("\n\n\tplease select car... (1-" + intToStr(car.size()) + ")> ","red");
+						cin >> choose;
+						choose--;
+						if(choose>=0&&choose<=car.size()-1)
+							{break;}
+					}
+					players[challenger].box.del(car[choose],1);
+					players[player].box.add(car[choose],1);
+					cout << "\n\t" << "Player " << intToStr(player)<< ": " << players[player].name;
+					cout << " stolen  " << itemMap[car[choose]].name << " x 1" << " of "<< players[challenger].name;
+						
+				}
+
+			}
+			else if(name=="Steal House")/* tested by gorn */
+			{
+				vector<int> house; uint challenger,choose;
+				if(player==0)challenger=1; else challenger=0;
+				cout << "\n\t" << "Player " << intToStr(player+1)<< ": " << players[player].name;
+				cout << " got right to Steal one house of challenger -> " << players[challenger].name;
+				
+				
+				
+
+				for(uint i=0;i<players[challenger].box.item.size();i++)
+				{
+					if(itemMap[players[challenger].box.item[i].id].type=="house")
+					{
+						
+						house.push_back(players[challenger].box.item[i].id);
+						cout << "\n\t(" << intToStr(house.size()) << ") " << itemMap[players[challenger].box.item[i].id].name << " x " << intToStr(players[challenger].box.item[i].amount);
+						
+					}
+					
+				}
+				if(house.size()<=0)
+				{
+					cout << "\nsorry, but challenger didn't have any house.";
+				}
+				else
+				{
+					while(true)
+					{
+						cPrint.cPrint("\n\n\tplease select house... (1-" + intToStr(house.size()) + ")> ","red");
+						cin >> choose;
+						choose--;
+						if(choose>=0&&choose<=house.size()-1)
+							{break;}
+					}
+					players[challenger].box.del(house[choose],1);
+					players[player].box.add(house[choose],1);
+					cout << "\n\t" << "Player " << intToStr(player)<< ": " << players[player].name;
+					cout << " stolen  " << itemMap[house[choose]].name << " x 1" << " of "<< players[challenger].name;
+						
+				}
+
+			}
+			else if(name=="Lost All house & car")/* tested by gorn */
+			{
+				players[player].box.item.clear();
+				cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost All house & car!";
+			}
+			else if(name=="Bankrupt")/* tested by gorn */
+			{
+				players[player].coins=0;
+				players[player].box.item.clear();
+				cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Bankrupted ,Lost All coins & house & car!";
+			}
 
 		}
 
@@ -360,7 +461,7 @@ public:
 		cPrint.cPrint("\nPlayer 1 :" + players[0].name,"red") ;
 		while(true)
 		{
-			cout << "\n" << " select item for u (1-8)>";
+			cout << "\n" << " select item for me (1-8)>";
 			cin >> player1Choose[0];
 			player1Choose[0]--;
 			if(player1Choose[0]>=0&&player1Choose[0]<=7)
@@ -378,7 +479,7 @@ public:
 		cPrint.cPrint("\nPlayer 2 :" + players[1].name,"red") ;
 		while(true)
 		{
-			cout << "\n" << " select item for u (1-8)>";
+			cout << "\n" << " select item for me (1-8)>";
 			cin >> player2Choose[0];
 			player2Choose[0]--;
 			if(player2Choose[0]>=0&&player2Choose[0]<=7)
@@ -471,7 +572,6 @@ public:
 		int a,b,c;
 		vector<int> ritem;
 		/*Generate lost coin 2*/
-		srand(time(0));
 		a = (rand() % 20);
 		b = (rand() % 20);
 		ritem.push_back(a);
@@ -484,20 +584,17 @@ public:
 		ritem.push_back(b);
 		ritem.push_back(c);
 		/*Generate car 1*/
-		srand(time(0));
 		a = (rand() % 6)+40;
 		ritem.push_back(a);
 		/*Generate house 1*/
-		srand(time(0));
 		a = (rand() % 6)+46;
 		ritem.push_back(a);
 		/*Generate critical 1*/
-		srand(time(0));
 		if(prob>=30)
 		{
 			while(true)
 			{
-				a = (rand() % 6)+52;
+				a = (rand() % 7)+52;
 				if(prob>=itemMap[a].minProb)
 				{
 					ritem.push_back(a);
@@ -515,10 +612,9 @@ public:
 		/* Swap item 20 rounds*/
 		for(int i=0;i<20;i++)
 		{
-			srand(time(0));
 			int temp;
-			temp=ritem[0];
 			a = (rand() % 8);
+			temp=ritem[0];
 			ritem[0]=ritem[a];
 			ritem[a]=temp;
 		}
@@ -528,15 +624,16 @@ public:
 
 	void showRandom_item(bool noSecret=false)
 	{
-		uint a,b,c,d;
+		uint a,b,c,d,e;
 		a = (rand() % 8);
 		b = (rand() % 8);
 		c = (rand() % 8);
 		d = (rand() % 8);
+		e = (rand() % 8);
 		cout<<"\n";
 		for(uint i=0;i<randomItems.size();i++)
 		{
-			if(i==a||i==b||i==c||i==d)
+			if(i==a||i==b||i==c||i==d||i==e)
 			{
 				if(!noSecret)cPrint.cPrint("\t("+intToStr(i+1)+") ???Secret item???","red");
 				else cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
@@ -551,9 +648,10 @@ public:
 	}
 	void showItem_player(void)
 	{
-		cout << "\n\t\t_____________________________________";
+		cout << "\n\t____________________________________________________________________";
 		cout << "\n\t" << players[0].name<< "\t\t\t\t\t" << players[1].name;
-		cout << "\n\t" << players[0].coins << " coins" << "\t\t\t\t" << players[1].coins << " coins";
+		cout << "\n\t" << players[0].coins << "("<< intToStr(players[0].coins / 1000000) <<"M)" << " coins"; 
+		cout << "\t\t\t" << players[1].coins << "("<< intToStr(players[1].coins / 1000000) <<"M)" << " coins";
 		uint maxLine;
 		if(players[0].box.item.size()>players[1].box.item.size()){maxLine=players[0].box.item.size();}
 		else{maxLine=players[1].box.item.size();}
@@ -573,7 +671,7 @@ public:
 			}
 
 		}
-		cout << "\n\t\t_____________________________________";
+		cout << "\n\t____________________________________________________________________";
 	}
 
 	void generate_itemMap(void)
@@ -584,7 +682,7 @@ public:
 		20-39 = get coins
 		40-45 = get car
 		46-51 = get house
-		52-57 = critical
+		52-58 = critical
 		=====================================
 		*/
 		/*---------------------------------*/
@@ -611,7 +709,7 @@ public:
 		}
 		/*---------------------------------*/
 		/*Generate critical 			   */
-		for(int i =0;i<=5;i++)
+		for(int i =0;i<=6;i++)
 		{
 			itemMap.push_back(item(prototypeItem.criticals[i].name, prototypeItem.types[3], 0, prototypeItem.criticals[i].value));
 		}
