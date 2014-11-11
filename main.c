@@ -1,11 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <vector>
 #include <iostream>
 #include <sstream>
-#include <vector>
-#include <unistd.h>
-
 #include <ctime>
+
+
+#if defined(__unix__)
+#include <sys/param.h>
+#if defined(BSD)
+	/* BSD (DragonFly BSD, FreeBSD, OpenBSD, NetBSD). ----------- */
+	#define BSDOS true
+	#define LinuxOS false
+#endif
+#endif
+
+#if defined(__linux__)
+	/* Linux. --------------------------------------------------- */
+	#define BSDOS false
+	#define LinuxOS true
+#endif
+
+
 
 
 using namespace std;
@@ -17,10 +34,17 @@ using namespace std;
  **********************************************************************/
 void clean_stdin(void)
 {
-    int c;
-    do {
-        c = getchar();
-    } while (c != '\n' && c != EOF);
+	if(LinuxOS)
+	{
+	    int c;
+	    do {
+	        c = getchar();
+	    } while (c != '\n' && c != EOF);
+	}
+	else if(BSDOS)
+	{
+		fflush(stdin);
+	}
 }
 
 
@@ -102,6 +126,12 @@ public:
 	player()
 	{
 		coins=20000000;
+	}
+	int clearReplay(void)
+	{
+		box.item.clear();
+		player();
+		return 0;
 	}
 
 };
@@ -186,7 +216,7 @@ public:
 	char highlowValue;
 	int prob;
 
-	class item
+	class item 	/* use for keep item map  */
 	{
 	public:
 		string name;
@@ -202,7 +232,7 @@ public:
 		}
 	};
 
-	class itemPrototype
+	class itemPrototype  /* use for generate item map only*/
 	{
 	public:
 	/*------------------------*/
@@ -244,7 +274,7 @@ public:
 			houses.push_back(prototype("New York,USA",20000000));
 			houses.push_back(prototype("Rome,Italy",80000000));
 			houses.push_back(prototype("Sydney,Australia",200000000));
-			/*------------------------------*/
+			/*--------------FOR USE----------------*/
 			//criticals.push_back(prototype("Lost All House",50));	/* Value are minimum num required prob to gen it */
 			//criticals.push_back(prototype("Lost All car",30));
 			//criticals.push_back(prototype("Lost All gold",40));
@@ -253,7 +283,7 @@ public:
 			//criticals.push_back(prototype("Steal House",70));
 			//criticals.push_back(prototype("Bankrupt",90));
 
-
+			/*--------------FOR TEST----------------*/
 			criticals.push_back(prototype("Lost All House",100));	/* Value are minimum num required prob to gen it */
 			criticals.push_back(prototype("Lost All car",100));
 			criticals.push_back(prototype("Lost All gold",100));
@@ -267,28 +297,26 @@ public:
 
 
 
-	vector<item> itemMap;
-	itemPrototype prototypeItem;
+	vector<item> itemMap; /* use for keep item map  */
+	itemPrototype prototypeItem; /* use for generate item map only*/
 	vector<int> randomItems;
 
 	coreGame()
 	{
 		randTurn = 0;
-		prob = 0;
-		generate_itemMap();
+		prob = 0;	/* incrase ->  enable new item in map*/
+		generate_itemMap(); /* generate global item (map of item) */
 		player1Choose.push_back(0);/*[0] for me ,[1] for challenger*/
 		player1Choose.push_back(0);
-		player2Choose.push_back(0);
+		player2Choose.push_back(0);/* for keep choosen_item of player in the each turn  */
 		player2Choose.push_back(0);
 		while(true)
 		{
 
 			showItem_player();
-			randomItems.empty();
 			randomItems=random_item();
 			showRandom_item(true);
 			chooseItem();
-
 			winner = highlow();
 			if(winner==0)
 			{
@@ -300,13 +328,51 @@ public:
 				getItem(1,player2Choose[0]);// player 2 won get my item
 				getItem(0,player2Choose[1]);// player 1 lose get item's Player 2 selected
 			}
-			
+			if(checkOver())break;
 			
 		}
 		
 	}
 
-	void getItem(uint player,uint item)
+
+	int checkOver(void)
+	{
+		int totalValuePlayer1 = sumAllValue(0);
+		int totalValuePlayer2 = sumAllValue(1);
+		if(totalValuePlayer1<=0||totalValuePlayer2<=0)
+		{
+			cout <<endl;
+			cout <<"....../ )"<<endl;
+			cout <<".....' /  L I K E"<<endl;
+			cout <<"---' (_____"<<endl;
+			cout <<"......... ((__)"<<endl;
+			if(totalValuePlayer1<=0||totalValuePlayer2<=0) cPrint.cPrint( players[0].name + " & " + players[1].name + " draw.","red");
+			else if(totalValuePlayer1>0||totalValuePlayer2<=0) cPrint.cPrint( players[0].name + " wins this game!","red");
+			else if(totalValuePlayer1<=0||totalValuePlayer2>0) cPrint.cPrint( players[1].name + " wins this game!","red");
+			cout <<"...... _ ((___)"<<endl;
+			cout <<"....... -'((__)"<<endl;
+			cout <<"--._____((_)"<<endl;
+				return 1;
+		}
+
+		return 0;
+	}
+
+
+	int sumAllValue(uint player)
+	{
+		int value = 0;
+		value += players[player].coins;
+		for(uint i=0;i<players[player].box.item.size();i++)
+		{
+			value += (itemMap[players[player].box.item[i].id].value * players[player].box.item[i].amount);
+		}
+		return value;
+
+	}
+
+
+	void getItem(uint player,uint item) /* get item */
 	{
 		string name = itemMap[item].name;
 		string type = itemMap[item].type;
@@ -456,7 +522,7 @@ public:
 
 	}
 
-	void chooseItem(void)
+	void chooseItem(void) /* player choose item */
 	{
 		cPrint.cPrint("\nPlayer 1 :" + players[0].name,"red") ;
 		while(true)
@@ -506,7 +572,7 @@ public:
 
 	}
 
-	int highlow(void)
+	int highlow(void) /* play hi -low */
 	{
 		srand(time(0));
 		int playerWin;
@@ -567,7 +633,7 @@ public:
 		
 	}
 
-	vector<int> random_item(void)
+	vector<int> random_item(void) /* random item in the each turn */
 	{
 		int a,b,c;
 		vector<int> ritem;
@@ -622,7 +688,7 @@ public:
 
 	}
 
-	void showRandom_item(bool noSecret=false)
+	void showRandom_item(bool noSecret=false) /* Show random item */
 	{
 		uint a,b,c,d,e;
 		a = (rand() % 8);
@@ -646,7 +712,7 @@ public:
 		}
 
 	}
-	void showItem_player(void)
+	void showItem_player(void) /* Show item of player */
 	{
 		cout << "\n\t____________________________________________________________________";
 		cout << "\n\t" << players[0].name<< "\t\t\t\t\t" << players[1].name;
@@ -659,7 +725,8 @@ public:
 		{
 			if(i<players[0].box.item.size())
 			{
-				cout << "\n\t" << itemMap[players[0].box.item[i].id].name << " x " << intToStr(players[0].box.item[i].amount);
+				cout << "\n\t" << itemMap[players[0].box.item[i].id].name << "("<< intToStr(itemMap[players[0].box.item[i].id].value / 1000000) <<"M)";
+				cout << " x " << intToStr(players[0].box.item[i].amount);
 			}
 			else
 			{
@@ -667,14 +734,16 @@ public:
 			}
 			if(i<players[1].box.item.size())
 			{
-				cout << "\t\t\t" << itemMap[players[1].box.item[i].id].name << " x " << intToStr(players[1].box.item[i].amount);
+				cout << "\t\t\t" << itemMap[players[1].box.item[i].id].name << "("<< intToStr(itemMap[players[1].box.item[i].id].value / 1000000) <<"M)";
+				cout << " x " << intToStr(players[1].box.item[i].amount);
 			}
 
 		}
+		cout << "\n\tTotal " << intToStr(sumAllValue(0)/1000000) << " M\t\t\t\tTotal " <<  intToStr(sumAllValue(1)/1000000) << " M";
 		cout << "\n\t____________________________________________________________________";
 	}
 
-	void generate_itemMap(void)
+	void generate_itemMap(void) /* generate global item */
 	{
 		/*
 		=====================================
@@ -733,9 +802,9 @@ public:
 
  void welcome()
  {
- 	cPrint.cPrint("\n\t\tWelcome To Millionaire Game\n\t\tThis is v0.1 -> 2player","blue");
- 	cout << "\n\tEnter player 1 name:"; cin >> players[0].name;
- 	cout << "\n\tEnter player 2 name:"; cin >> players[1].name;
+ 	cPrint.cPrint("\n\t\tWelcome To Millionaire Game\n\t(v1.0.1 -> 2 player in single computer)","blue");
+ 	cout << "\n\tEnter player 1 name: "; cin >> players[0].name;
+ 	cout << "\n\tEnter player 2 name: "; cin >> players[1].name;
  	cout << "\n\tWelcome " << players[0].name<< " & " << players[1].name << ", Enter to play game....";
  	clean_stdin();
  }
@@ -747,7 +816,22 @@ int main(int argc, char* argv[])
 	players.push_back(addPlayer);	/* Add player 1 */
 	players.push_back(addPlayer);	/* Add player 2 */
 	welcome();
-	coreGame game;
-
+	while(1)
+	{
+		coreGame game; //Run Game
+		cPrint.cPrint("\n\tDo you want to play again? (Y/n)...","red");
+		char replayFlag='n';
+		cin >> replayFlag;
+		if(replayFlag=='y'||replayFlag=='Y')
+		{
+			players[0].clearReplay();
+			players[1].clearReplay();
+		}
+		else
+		{
+			break;
+		}
+	}
+	cPrint.cPrint("\nThank " + players[0].name + " & " + players[0].name + "for play game!","red");
 	return 0;
 }
