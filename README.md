@@ -1,3 +1,3 @@
 This is millionaire game.
 _____________________________
-v0.1 -  2 user in single computer
+(v1.0.1 -> 2 player in single computer)
