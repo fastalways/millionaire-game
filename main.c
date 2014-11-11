@@ -43,7 +43,7 @@ void clean_stdin(void)
 	}
 	else if(BSDOS)
 	{
-		fflush(stdin);
+		fpurge(stdin);
 	}
 }
 
