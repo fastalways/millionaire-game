@@ -56,7 +56,7 @@ class player
 {
 public:
 	string name;
-	int coins;
+	int coins,startCoin;
 	class pitem
 	{
 	public:
@@ -124,12 +124,14 @@ public:
 	itemsClass box;
 	
 	player()
-	{
-		coins=20000000;
+	{	
+		startCoin=20000000;
+		coins=startCoin;
 	}
 	int clearReplay(void)
 	{
 		box.item.clear();
+		coins=startCoin;
 		player();
 		return 0;
 	}
@@ -139,7 +141,7 @@ public:
 class colorPrint
 {
 public:
-	string red,cyan,green,blue,black,brown,magenta,gray,none;
+	string red,cyan,green,lowgreen,blue,black,brown,magenta,gray,welcome,none;
 	colorPrint(void)
 	{
 
@@ -152,11 +154,20 @@ public:
 		blue = "\033[0;34m";        /* 9 -> strike ;  34 -> blue */
 		brown = "\033[0;33m";
 		magenta = "\033[0;35m";
-	 
+	 	lowgreen = "\033[0;36m";
 		none  = "\033[0m";        /* to flush the previous property */
+
+	 		welcome="\033[4;42m";
 
 	}
 
+	void testColor(string colorCode)
+	{
+		string color = "\033[0;";
+		color += colorCode;
+		color += "m";
+		cout<<color<<"Test Color! of"<<colorCode<<none;
+	}
 
 	void cPrint(string msg,string color)
 	{
@@ -164,10 +175,12 @@ public:
 		if(color=="red") color = red;
 		/*else if(color=="cyan") color = cyan;*/
 		else if(color=="green") color = green;
+		else if(color=="lowgreen") color = lowgreen;
 		else if(color=="blue") color = blue;
 		/*else if(color=="black") color = black;*/
 		else if(color=="brown") color = brown;
 		else if(color=="magenta") color = magenta;
+		else if(color=="welcome") color = welcome;
 		/*else if(color=="gray") color = gray;*/
 		else color = none;
 		cout<<color<<msg<<none;
@@ -275,22 +288,22 @@ public:
 			houses.push_back(prototype("Rome,Italy",80000000));
 			houses.push_back(prototype("Sydney,Australia",200000000));
 			/*--------------FOR USE----------------*/
-			//criticals.push_back(prototype("Lost All House",50));	/* Value are minimum num required prob to gen it */
-			//criticals.push_back(prototype("Lost All car",30));
-			//criticals.push_back(prototype("Lost All gold",40));
-			//criticals.push_back(prototype("Lost All house & car",80));
-			//criticals.push_back(prototype("Steal Car",50));
-			//criticals.push_back(prototype("Steal House",70));
-			//criticals.push_back(prototype("Bankrupt",90));
+			criticals.push_back(prototype("Lost All House",50));	/* Value are minimum num required prob to gen it */
+			criticals.push_back(prototype("Lost All car",30));
+			criticals.push_back(prototype("Lost All gold",40));
+			criticals.push_back(prototype("Lost All house & car",80));
+			criticals.push_back(prototype("Steal Car",50));
+			criticals.push_back(prototype("Steal House",70));
+			criticals.push_back(prototype("Bankrupt",90));
 
 			/*--------------FOR TEST----------------*/
-			criticals.push_back(prototype("Lost All House",100));	/* Value are minimum num required prob to gen it */
-			criticals.push_back(prototype("Lost All car",100));
+			/*criticals.push_back(prototype("Lost All House",100));*/	/* Value are minimum num required prob to gen it */
+			/*criticals.push_back(prototype("Lost All car",100));
 			criticals.push_back(prototype("Lost All gold",100));
-			criticals.push_back(prototype("Lost All house & car",100));
+			criticals.push_back(prototype("Lost All house & car",30));
 			criticals.push_back(prototype("Steal Car",100));
 			criticals.push_back(prototype("Steal House",100));
-			criticals.push_back(prototype("Bankrupt",30));
+			criticals.push_back(prototype("Bankrupt",100));*/
 
 		}
 	};
@@ -315,8 +328,9 @@ public:
 
 			showItem_player();
 			randomItems=random_item();
-			showRandom_item(true);
+			showRandom_item(false);
 			chooseItem();
+			showRandom_item(true);
 			winner = highlow();
 			if(winner==0)
 			{
@@ -341,14 +355,15 @@ public:
 		int totalValuePlayer2 = sumAllValue(1);
 		if(totalValuePlayer1<=0||totalValuePlayer2<=0)
 		{
+			showItem_player();
 			cout <<endl;
 			cout <<"....../ )"<<endl;
 			cout <<".....' /  L I K E"<<endl;
 			cout <<"---' (_____"<<endl;
-			cout <<"......... ((__)"<<endl;
-			if(totalValuePlayer1<=0||totalValuePlayer2<=0) cPrint.cPrint( players[0].name + " & " + players[1].name + " draw.","red");
-			else if(totalValuePlayer1>0||totalValuePlayer2<=0) cPrint.cPrint( players[0].name + " wins this game!","red");
-			else if(totalValuePlayer1<=0||totalValuePlayer2>0) cPrint.cPrint( players[1].name + " wins this game!","red");
+			cout <<"......... ((__)";
+			if(totalValuePlayer1<=0&&totalValuePlayer2<=0) cPrint.cPrint( "  " + players[0].name + " & " + players[1].name + " draw.\n","red");
+			else if(totalValuePlayer1>0&&totalValuePlayer2<=0) cPrint.cPrint( "  " + players[0].name + " wins this game!\n","red");
+			else if(totalValuePlayer1<=0&&totalValuePlayer2>0) cPrint.cPrint( "  " + players[1].name + " wins this game!\n","red");
 			cout <<"...... _ ((___)"<<endl;
 			cout <<"....... -'((__)"<<endl;
 			cout <<"--._____((_)"<<endl;
@@ -381,8 +396,8 @@ public:
 		if(type == "coin")/* tested by gorn */
 		{
 			players[player].coins+=value;
-			if(value<=0)cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Lost " << intToStr(value*(-1)) << "("<< intToStr(value / 1000000) <<"M)"<<" coins";
-			else cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " Got " << intToStr(value) << "("<< intToStr(value / 1000000) <<"M)" <<" coins";
+			if(value<=0)cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " lost " << intToStr(value*(-1)) << "("<< intToStr(value / 1000000) <<"M)"<<" coins";
+			else cout << "\n\tPlayer " << intToStr(player)<< ": " << players[player].name << " got " << intToStr(value) << "("<< intToStr(value / 1000000) <<"M)" <<" coins";
 		}
 		else if(type == "car" || type == "house")/* tested by gorn */
 		{
@@ -568,7 +583,7 @@ public:
 
 		//cout << endl << player1Choose[0] << "," << player1Choose[1];
 		//cout << endl << player2Choose[0] << "," << player2Choose[1];
-
+		cPrint.cPrint("\n\tOpened secret item........","red") ;
 
 	}
 
@@ -580,7 +595,7 @@ public:
 		{
 			/*system("clear");*/
 			clean_stdin();
-			cout << "\nPlayer " << randTurn+1 << " :" << players[randTurn].name << " select h(high) or l(low) or e(equal) : ";
+			cPrint.cPrint( "\n\nPlayer " + intToStr(randTurn+1) + " :" + players[randTurn].name + " play highlow ","lowgreen");cout << "h(high) or l(low) or e(equal) : ";
 			char a;
 			a = getchar();
 			if(a=='h'||a=='l'||a=='e')
@@ -637,6 +652,7 @@ public:
 	{
 		int a,b,c;
 		vector<int> ritem;
+		srand(time(0));
 		/*Generate lost coin 2*/
 		a = (rand() % 20);
 		b = (rand() % 20);
@@ -690,30 +706,47 @@ public:
 
 	void showRandom_item(bool noSecret=false) /* Show random item */
 	{
-		uint a,b,c,d,e;
+		uint a,b,c,d;
 		a = (rand() % 8);
 		b = (rand() % 8);
 		c = (rand() % 8);
 		d = (rand() % 8);
-		e = (rand() % 8);
 		cout<<"\n";
 		for(uint i=0;i<randomItems.size();i++)
 		{
-			if(i==a||i==b||i==c||i==d||i==e)
+			if(prob<=40)
 			{
-				if(!noSecret)cPrint.cPrint("\t("+intToStr(i+1)+") ???Secret item???","red");
-				else cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
+				if(i==a||i==b)
+				{
+					if(!noSecret)cPrint.cPrint("\t("+intToStr(i+1)+") ???Secret item???","red");
+					else cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
+				}
+				else
+				{
+					cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
+				}
 			}
 			else
 			{
-				cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
+				if(i==a||i==b||i==c||i==d)
+				{
+					if(!noSecret)cPrint.cPrint("\t("+intToStr(i+1)+") ???Secret item???","red");
+					else cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
+				}
+				else
+				{
+					cPrint.cPrint("\t("+intToStr(i+1)+") "+itemMap[randomItems[i]].name,"magenta");
+				}
 			}
+				
 			if(i==3)cout<<endl;
 		}
 
 	}
 	void showItem_player(void) /* Show item of player */
 	{
+		cout << "\n\t____________________________________________________________________";
+		cout << "\n\t__________________________ Current Item ____________________________";
 		cout << "\n\t____________________________________________________________________";
 		cout << "\n\t" << players[0].name<< "\t\t\t\t\t" << players[1].name;
 		cout << "\n\t" << players[0].coins << "("<< intToStr(players[0].coins / 1000000) <<"M)" << " coins"; 
@@ -784,10 +817,10 @@ public:
 		}
 		/*---------------------------------*/
 
-		for(uint i=0;i<itemMap.size();i++)
+		/*for(uint i=0;i<itemMap.size();i++)
 		{
 				cout<<i<<" "<<itemMap[i].name<<" "<<itemMap[i].type<<" "<<itemMap[i].value<<" "<<itemMap[i].minProb<<endl;
-		}
+		}*/
 	}
 
 	
@@ -802,10 +835,16 @@ public:
 
  void welcome()
  {
- 	cPrint.cPrint("\n\t\tWelcome To Millionaire Game\n\t(v1.0.1 -> 2 player in single computer)","blue");
+ 	/*while(true)
+ 	{
+ 		string c;
+ 		cout<<">>>>>>";cin>>c;
+ 		cPrint.testColor(c);
+ 	}*/
+ 	cPrint.cPrint("\n\t\tWelcome To Millionaire Game\n\t(v1.0.1 -> 2 player in single computer)","welcome");
  	cout << "\n\tEnter player 1 name: "; cin >> players[0].name;
  	cout << "\n\tEnter player 2 name: "; cin >> players[1].name;
- 	cout << "\n\tWelcome " << players[0].name<< " & " << players[1].name << ", Enter to play game....";
+ 	cout << "\n\tWelcome " << players[0].name<< " & " << players[1].name;
  	clean_stdin();
  }
 
@@ -832,6 +871,6 @@ int main(int argc, char* argv[])
 			break;
 		}
 	}
-	cPrint.cPrint("\nThank " + players[0].name + " & " + players[0].name + "for play game!","red");
+	cPrint.cPrint("\nThank " + players[0].name + " & " + players[0].name + " for play game!\n","red");
 	return 0;
 }
