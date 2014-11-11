@@ -1,3 +1,4 @@
-
+CC=g++
+CFLAGS=-Wall -ansi -pedantic.
 game:main.c
-	g++ -Wall -ansi -pedantic main.c -o game
+	$(CC) $(CFLAGS) main.c -o game
