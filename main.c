@@ -362,8 +362,8 @@ public:
 			cout <<"---' (_____"<<endl;
 			cout <<"......... ((__)";
 			if(totalValuePlayer1<=0&&totalValuePlayer2<=0) cPrint.cPrint( "  " + players[0].name + " & " + players[1].name + " draw.\n","red");
-			else if(totalValuePlayer1>0&&totalValuePlayer2<=0) cPrint.cPrint( "  " + players[0].name + " wins this game!\n","red");
-			else if(totalValuePlayer1<=0&&totalValuePlayer2>0) cPrint.cPrint( "  " + players[1].name + " wins this game!\n","red");
+			else if(totalValuePlayer1>0&&totalValuePlayer2<=0) cPrint.cPrint( "  " + players[0].name + " won this game!\n","red");
+			else if(totalValuePlayer1<=0&&totalValuePlayer2>0) cPrint.cPrint( "  " + players[1].name + " won this game!\n","red");
 			cout <<"...... _ ((___)"<<endl;
 			cout <<"....... -'((__)"<<endl;
 			cout <<"--._____((_)"<<endl;
